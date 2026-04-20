@@ -1,20 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Base ─── */
 :root {
-  --mystic-deep: #1a0a2e;
+  --mystic-deep: #0f0c29;
+  --mystic-mid: #1a0a2e;
+  --mystic-end: #302b63;
   --mystic-gold: #c9a84c;
+  --mystic-gold-light: #e0c872;
   --mystic-star: #f0e6d3;
+  --mystic-purple: #6b4c9a;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--mystic-deep);
+  background: linear-gradient(165deg, var(--mystic-deep) 0%, var(--mystic-mid) 40%, var(--mystic-end) 100%);
+  background-attachment: fixed;
   color: var(--mystic-star);
-  font-family: Georgia, Cambria, serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
-/* Starfield background */
+::selection {
+  background: rgba(201, 168, 76, 0.3);
+  color: #f0e6d3;
+}
+
+/* ─── Starfield ─── */
 .starfield {
   position: fixed;
   inset: 0;
@@ -25,29 +47,49 @@ body {
 
 .star {
   position: absolute;
-  width: 2px;
-  height: 2px;
-  background: #fff;
   border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,230,211,0.9) 0%, transparent 70%);
   animation: twinkle var(--duration, 3s) ease-in-out infinite;
   animation-delay: var(--delay, 0s);
 }
 
-@keyframes twinkle {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 1; }
+.star--large {
+  box-shadow: 0 0 6px 2px rgba(201, 168, 76, 0.3);
 }
 
-/* Card flip */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.1; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* ─── Shooting star ─── */
+.shooting-star {
+  position: absolute;
+  width: 80px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(201,168,76,0.8), transparent);
+  animation: shoot var(--shoot-duration, 3s) linear infinite;
+  animation-delay: var(--shoot-delay, 0s);
+  opacity: 0;
+}
+
+@keyframes shoot {
+  0% { transform: translateX(0) translateY(0); opacity: 0; }
+  5% { opacity: 1; }
+  30% { opacity: 0; }
+  100% { transform: translateX(300px) translateY(200px); opacity: 0; }
+}
+
+/* ─── Card Flip ─── */
 .card-container {
-  perspective: 1000px;
+  perspective: 1200px;
 }
 
 .card-inner {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
 }
 
@@ -55,38 +97,135 @@ body {
   transform: rotateY(180deg);
 }
 
-.card-front, .card-back {
+.card-front,
+.card-back {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
-  border-radius: 12px;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .card-back {
   transform: rotateY(180deg);
 }
 
-/* Glow effect */
+/* ─── Gold Glow ─── */
 .gold-glow {
-  box-shadow: 0 0 20px rgba(201, 168, 76, 0.3), 0 0 60px rgba(201, 168, 76, 0.1);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.15),
+              0 0 60px rgba(201, 168, 76, 0.05);
+  transition: box-shadow 0.5s ease;
 }
 
-/* Blur lock overlay */
-.reading-lock {
-  position: relative;
+.gold-glow:hover {
+  box-shadow: 0 0 30px rgba(201, 168, 76, 0.3),
+              0 0 80px rgba(201, 168, 76, 0.1),
+              inset 0 0 30px rgba(201, 168, 76, 0.05);
 }
-.reading-lock::after {
+
+/* ─── CTA Button Shimmer ─── */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60%;
-  background: linear-gradient(transparent, var(--mystic-deep) 70%);
-  pointer-events: none;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--mystic-deep); }
-::-webkit-scrollbar-thumb { background: var(--mystic-gold); border-radius: 3px; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ─── Card Back Pattern ─── */
+.card-pattern {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-pattern::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 10px;
+}
+
+.card-pattern::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 70%;
+  height: 70%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+/* geometric star pattern for card backs */
+.card-star-pattern {
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-conic-gradient(
+      from 0deg at 50% 50%,
+      rgba(201, 168, 76, 0.08) 0deg,
+      transparent 30deg,
+      transparent 60deg
+    );
+}
+
+/* ─── Gradient Text ─── */
+.text-gold-gradient {
+  background: linear-gradient(135deg, #c9a84c 0%, #e0c872 40%, #c9a84c 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(201, 168, 76, 0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201, 168, 76, 0.5); }
+
+/* ─── Glassmorphism ─── */
+.glass {
+  background: rgba(15, 12, 41, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(201, 168, 76, 0.1);
+}
+
+/* ─── Divider ─── */
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ornament-divider::before,
+.ornament-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.3), transparent);
+}
+
+/* ─── Responsive helper ─── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
