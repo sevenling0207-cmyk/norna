@@ -32,7 +32,8 @@ function Navbar() {
           <div className="hidden md:flex items-center gap-8">
             <a href="#readings" className="text-sm text-[#9ca3af] hover:text-white transition-colors">Readings</a>
             <a href="#how-it-works" className="text-sm text-[#9ca3af] hover:text-white transition-colors">How It Works</a>
-            <a href="#about" className="text-sm text-[#9ca3af] hover:text-white transition-colors">About</a>
+            <Link href="/about" className="text-sm text-[#9ca3af] hover:text-white transition-colors">About</Link>
+            <Link href="/faq" className="text-sm text-[#9ca3af] hover:text-white transition-colors">FAQ</Link>
             <Link href="/reading" className="btn-gold px-5 py-2.5 text-sm font-semibold">
               Get Your Reading
             </Link>
@@ -60,7 +61,8 @@ function Navbar() {
         <div className="md:hidden bg-[rgba(10,10,20,0.95)] backdrop-blur-xl border-t border-[rgba(212,168,83,0.08)] px-4 py-6 space-y-4">
           <a href="#readings" className="block text-[#9ca3af] hover:text-white" onClick={() => setMobileOpen(false)}>Readings</a>
           <a href="#how-it-works" className="block text-[#9ca3af] hover:text-white" onClick={() => setMobileOpen(false)}>How It Works</a>
-          <a href="#about" className="block text-[#9ca3af] hover:text-white" onClick={() => setMobileOpen(false)}>About</a>
+          <Link href="/about" className="block text-[#9ca3af] hover:text-white" onClick={() => setMobileOpen(false)}>About</Link>
+          <Link href="/faq" className="block text-[#9ca3af] hover:text-white" onClick={() => setMobileOpen(false)}>FAQ</Link>
           <Link href="/reading" className="btn-gold block text-center px-5 py-3 text-sm font-semibold" onClick={() => setMobileOpen(false)}>
             Get Your Reading
           </Link>
@@ -165,7 +167,7 @@ export default function HomePage() {
 
       <main className="relative z-10">
         {/* ═══ Hero ═══ */}
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden" style={{background:'radial-gradient(ellipse at 50% 30%, #1a1040 0%, #0a0a14 60%, #050510 100%)'}}>
           <Image
             src="/images/hero_slide_4_1024x1024.jpg"
             alt="Mystical background"
@@ -173,7 +175,7 @@ export default function HomePage() {
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/50 to-[#0a0a14]" />
           <div className="relative z-10 text-center px-4 max-w-3xl mx-auto">
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight mb-6">
               Discover What the Stars{" "}
@@ -206,7 +208,7 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {readings.map((r) => (
-                <Link key={r.slug} href={`/reading/${r.slug}`} className="group glass-card overflow-hidden">
+                <Link key={r.slug} href={`/reading/${r.slug}`} className="group glass-card overflow-hidden hover:shadow-[0_0_30px_rgba(212,168,83,0.15)] hover:border-[rgba(212,168,83,0.35)]">
                   <div className="relative h-48 overflow-hidden">
                     <Image
                       src={r.image}
@@ -348,9 +350,8 @@ export default function HomePage() {
               <div>
                 <h4 className="font-display text-white font-semibold mb-4 text-sm">About</h4>
                 <ul className="space-y-2.5">
-                  <li><a href="#about" className="text-[#9ca3af] text-sm hover:text-white transition-colors">Our Story</a></li>
-                  <li><a href="#" className="text-[#9ca3af] text-sm hover:text-white transition-colors">The Norns</a></li>
-                  <li><a href="#" className="text-[#9ca3af] text-sm hover:text-white transition-colors">Blog</a></li>
+                  <li><Link href="/about" className="text-[#9ca3af] text-sm hover:text-white transition-colors">Our Story</Link></li>
+                  <li><Link href="/about" className="text-[#9ca3af] text-sm hover:text-white transition-colors">The Norns</Link></li>
                 </ul>
               </div>
               <div>
@@ -365,9 +366,9 @@ export default function HomePage() {
               <div>
                 <h4 className="font-display text-white font-semibold mb-4 text-sm">Resources</h4>
                 <ul className="space-y-2.5">
-                  <li><a href="#" className="text-[#9ca3af] text-sm hover:text-white transition-colors">Tarot Guide</a></li>
-                  <li><a href="#" className="text-[#9ca3af] text-sm hover:text-white transition-colors">Norse Mythology</a></li>
-                  <li><a href="#" className="text-[#9ca3af] text-sm hover:text-white transition-colors">FAQ</a></li>
+                  <li><Link href="/about" className="text-[#9ca3af] text-sm hover:text-white transition-colors">Tarot Guide</Link></li>
+                  <li><Link href="/about" className="text-[#9ca3af] text-sm hover:text-white transition-colors">Norse Mythology</Link></li>
+                  <li><Link href="/faq" className="text-[#9ca3af] text-sm hover:text-white transition-colors">FAQ</Link></li>
                 </ul>
               </div>
               <div>

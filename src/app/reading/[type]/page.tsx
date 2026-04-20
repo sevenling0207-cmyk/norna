@@ -260,7 +260,7 @@ export default function ReadingPage() {
                 <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[rgba(212,168,83,0.15)]" />
               </div>
 
-              <div className="paywall-blur text-[#9ca3af] leading-relaxed text-sm space-y-4">
+              <div className="text-[#9ca3af] leading-relaxed text-sm space-y-4" style={{maskImage:'linear-gradient(to bottom, black 33%, transparent 90%)',WebkitMaskImage:'linear-gradient(to bottom, black 33%, transparent 90%)'}}>
                 {(readingData.premium || "The deeper threads of your reading reveal hidden patterns and connections that transform understanding into actionable wisdom. Each card speaks not only of its position but of its relationship to every other card in the spread.").split("\n\n").slice(0, 3).map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
@@ -277,9 +277,10 @@ export default function ReadingPage() {
               </div>
             </div>
 
-            <button className="btn-gold w-full py-4 text-sm font-semibold tracking-wider">
-              Unlock Full Reading — $2.99
+            <button className="btn-gold w-full py-4 text-base font-semibold tracking-wider shadow-[0_0_30px_rgba(212,168,83,0.25)]">
+              🔓 Unlock Full Reading — $2.99
             </button>
+            <p className="text-center text-[#9ca3af]/40 text-xs tracking-wider">✦ One-time purchase · Instant access</p>
 
             <div className="flex gap-3">
               <button

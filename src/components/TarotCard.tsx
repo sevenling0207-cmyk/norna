@@ -9,9 +9,9 @@ interface TarotCardProps {
 
 export default function TarotCard({ isFlipped, onClick, frontContent, size = "md" }: TarotCardProps) {
   const sizes = {
-    sm: "w-24 h-40",
-    md: "w-[110px] h-[180px] sm:w-[130px] sm:h-[210px]",
-    lg: "w-[120px] h-[195px] sm:w-[145px] sm:h-[235px]",
+    sm: "w-[100px] h-[162px] sm:w-[110px] sm:h-[180px]",
+    md: "w-[120px] h-[195px] sm:w-[140px] sm:h-[228px]",
+    lg: "w-[130px] h-[211px] sm:w-[160px] sm:h-[260px]",
   };
 
   return (
@@ -21,10 +21,11 @@ export default function TarotCard({ isFlipped, onClick, frontContent, size = "md
       style={{ perspective: "1200px" }}
     >
       <div
-        className="relative w-full h-full transition-transform duration-700"
+        className="relative w-full h-full"
         style={{
           transformStyle: "preserve-3d",
           transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+          transition: "transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1)",
         }}
       >
         {/* Back (visible when not flipped) */}
