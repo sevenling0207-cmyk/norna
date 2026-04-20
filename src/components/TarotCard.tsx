@@ -9,9 +9,9 @@ interface TarotCardProps {
 
 export default function TarotCard({ isFlipped, onClick, frontContent, size = "md" }: TarotCardProps) {
   const sizes = {
-    sm: "w-24 h-40",
-    md: "w-32 h-52",
-    lg: "w-40 h-64",
+    sm: "w-28 h-44",
+    md: "w-[110px] h-[180px] sm:w-[130px] sm:h-[210px]",
+    lg: "w-44 h-72",
   };
 
   return (

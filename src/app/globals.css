@@ -142,14 +142,15 @@ body {
 .tarot-back-pattern {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0d0d1a 0%, #14142a 50%, #0d0d1a 100%);
+  background: linear-gradient(135deg, #0d0d1a 0%, #1a1535 50%, #0d0d1a 100%);
+  box-shadow: 0 0 15px rgba(212,168,83,0.15), inset 0 0 30px rgba(212,168,83,0.05);
 }
 
 .tarot-back-pattern::before {
   content: '';
   position: absolute;
-  inset: 6px;
-  border: 1px solid rgba(212,168,83,0.2);
+  inset: 4px;
+  border: 1.5px solid rgba(212,168,83,0.35);
   border-radius: 8px;
 }
 
@@ -168,7 +169,7 @@ body {
   width: 60%;
   height: 60%;
   transform: translate(-50%, -50%) rotate(45deg);
-  border: 1px solid rgba(212,168,83,0.15);
+  border: 1px solid rgba(212,168,83,0.25);
 }
 
 .tarot-back-rays {
@@ -176,9 +177,9 @@ body {
   inset: 0;
   background: repeating-conic-gradient(
     from 0deg at 50% 50%,
-    rgba(212,168,83,0.04) 0deg,
-    transparent 15deg,
-    transparent 30deg
+    rgba(212,168,83,0.08) 0deg,
+    transparent 12deg,
+    transparent 24deg
   );
 }
 
