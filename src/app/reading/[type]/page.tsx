@@ -194,6 +194,9 @@ export default function ReadingPage() {
                     isFlipped={flipped[i]}
                     onClick={() => flipCard(i)}
                     size={config.count <= 3 ? "lg" : "md"}
+                    cardImage={card.card.image || undefined}
+                    cardName={card.card.name}
+                    isReversed={card.reversed}
                     frontContent={
                       <div className="text-center px-2">
                         <p className="font-display text-white text-xs sm:text-sm leading-tight mb-1">{card.card.name}</p>
@@ -228,11 +231,28 @@ export default function ReadingPage() {
                   <p className="text-[#d4a853]/40 text-[9px] tracking-widest uppercase mb-2 font-display">
                     {config.labels[i]}
                   </p>
-                  <div className="w-16 h-24 sm:w-20 sm:h-28 rounded-lg border border-[rgba(212,168,83,0.12)] bg-[rgba(255,255,255,0.02)] flex flex-col items-center justify-center">
-                    <p className="text-white/70 text-[8px] sm:text-[9px] leading-tight px-1 font-display text-center">
-                      {card.card.name}
-                    </p>
-                    {card.reversed && <p className="text-[#d4a853]/40 text-[7px] mt-1">Reversed</p>}
+                  <div className="w-16 h-24 sm:w-20 sm:h-28 rounded-lg border border-[rgba(212,168,83,0.12)] bg-[rgba(255,255,255,0.02)] overflow-hidden relative flex flex-col items-center justify-center">
+                    {card.card.image ? (
+                      <>
+                        <img
+                          src={card.card.image}
+                          alt={card.card.name}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          style={card.reversed ? { transform: "rotate(180deg)" } : undefined}
+                        />
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
+                        <p className="relative text-white/90 text-[7px] sm:text-[8px] leading-tight px-1 font-display text-center mt-auto mb-1 drop-shadow">
+                          {card.card.name}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-white/70 text-[8px] sm:text-[9px] leading-tight px-1 font-display text-center">
+                          {card.card.name}
+                        </p>
+                        {card.reversed && <p className="text-[#d4a853]/40 text-[7px] mt-1">Reversed</p>}
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
