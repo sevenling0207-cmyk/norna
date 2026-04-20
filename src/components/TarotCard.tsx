@@ -14,9 +14,9 @@ interface TarotCardProps {
 
 export default function TarotCard({ isFlipped, onClick, frontContent, cardImage, cardName, isReversed, size = "md" }: TarotCardProps) {
   const sizes = {
-    sm: "w-[100px] h-[162px] sm:w-[110px] sm:h-[180px]",
-    md: "w-[120px] h-[195px] sm:w-[140px] sm:h-[228px]",
-    lg: "w-[140px] h-[227px] sm:w-[170px] sm:h-[276px]",
+    sm: "w-[110px] h-[178px] sm:w-[130px] sm:h-[210px]",
+    md: "w-[130px] h-[210px] sm:w-[155px] sm:h-[252px]",
+    lg: "w-[150px] h-[243px] sm:w-[185px] sm:h-[300px]",
   };
 
   return (
@@ -79,23 +79,23 @@ export default function TarotCard({ isFlipped, onClick, frontContent, cardImage,
           }}
         >
           {cardImage ? (
-            <div className="relative w-full h-full" style={isReversed ? { transform: "rotate(180deg)" } : undefined}>
+            <div className="relative w-full h-full">
               <Image
                 src={cardImage}
                 alt={cardName || "Tarot card"}
                 fill
                 className="object-cover"
-                sizes="(max-width: 640px) 170px, 200px"
+                sizes="(max-width: 640px) 170px, 220px"
               />
               {/* Dark gradient overlay at bottom for card name */}
-              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
               {cardName && (
                 <div className="absolute inset-x-0 bottom-0 p-2 text-center">
-                  <p className="font-display text-white text-[10px] sm:text-xs leading-tight drop-shadow-lg">
+                  <p className="font-display text-white text-[11px] sm:text-sm leading-tight drop-shadow-lg">
                     {cardName}
                   </p>
                   {isReversed && (
-                    <p className="text-[#d4a853] text-[8px] sm:text-[9px] drop-shadow-lg">Reversed</p>
+                    <p className="text-[#d4a853] text-[9px] sm:text-[10px] mt-0.5 drop-shadow-lg">↻ Reversed</p>
                   )}
                 </div>
               )}
