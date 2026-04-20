@@ -1,158 +1,105 @@
 "use client";
-import Link from "next/link";
+
 import Image from "next/image";
+import Link from "next/link";
 import Starfield from "@/components/Starfield";
 
 const readings = [
   {
-    id: "three-card",
     title: "Three-Card Spread",
-    subtitle: "Past · Present · Future",
-    desc: "The classic tarot reading. Three cards illuminate the threads of time woven around your question.",
-    price: "Free",
-    href: "/reading/three-card",
-    popular: true,
-    features: ["3 cards drawn", "AI interpretation", "Shareable result"],
-    image: "/images/hero_slide_3_1024x1024.jpg",
-  },
-  {
-    id: "love",
-    title: "Love Reading",
-    subtitle: "Heart · Partner · Union",
-    desc: "Explore the energies between souls. Understand what draws you together and what seeks healing.",
-    price: "$2.99",
-    href: "/reading/love",
-    features: ["3 cards drawn", "Deep analysis", "Compatibility insight"],
+    desc: "Reveal the influences of your past, the energy of your present, and the possibilities of your future in one powerful spread.",
+    price: "Free first reading",
     image: "/images/hero_slide_2_1024x1024.jpg",
+    slug: "three-card",
+    badge: "Popular",
+    badgeColor: "bg-[rgba(212,168,83,0.2)] border-[rgba(212,168,83,0.3)] text-[#f0d48a]",
   },
   {
-    id: "daily",
-    title: "Daily Card",
-    subtitle: "Today's Guidance",
-    desc: "A single card to set your intention. A morning ritual of reflection trusted by thousands.",
+    title: "Love Reading",
+    desc: "Understand the dynamics of your romantic life. Gain clarity on relationships, connections, and matters of the heart.",
+    price: "$6.99",
+    image: "/images/hero_slide_3_1024x1024.jpg",
+    slug: "love",
+    badge: null,
+    badgeColor: "",
+  },
+  {
+    title: "Daily Horoscope",
+    desc: "Start each day with cosmic clarity. Your personalized daily forecast based on runic wisdom and celestial alignment.",
     price: "Free",
-    href: "/reading/daily",
-    features: ["1 card drawn", "Daily guidance", "Morning ritual"],
     image: "/images/horscope-optimized.webp",
+    slug: "daily",
+    badge: "Free",
+    badgeColor: "bg-[rgba(76,212,140,0.15)] border-[rgba(76,212,140,0.3)] text-emerald-400",
   },
   {
-    id: "palmistry",
-    title: "Palm Reading",
-    subtitle: "Lines of Destiny",
-    desc: "Upload a photo of your palm and let AI trace the ancient lines that map your fate.",
-    price: "$4.99",
-    href: "#",
-    soon: true,
-    features: ["Photo analysis", "Line-by-line reading", "Detailed report"],
-    image: "/images/expeert-guidance-optimized.webp",
+    title: "Celtic Cross",
+    desc: "The most comprehensive reading available. Ten cards reveal deep insights into every aspect of your life situation.",
+    price: "$9.99",
+    image: "/images/hero_slide_4_1024x1024.jpg",
+    slug: "celtic-cross",
+    badge: null,
+    badgeColor: "",
   },
 ];
 
-export default function ReadingSelect() {
+export default function ReadingSelectPage() {
   return (
-    <main className="relative min-h-screen">
+    <>
       <Starfield />
 
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--deep)]/80 backdrop-blur-xl border-b border-[var(--gold)]/[0.06]">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 lg:px-8 h-16 md:h-20">
-          <Link href="/" className="font-display text-xl tracking-[0.25em] text-[var(--gold)] font-semibold">
-            NORNA
-          </Link>
+      {/* Back nav */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[rgba(10,10,20,0.85)] backdrop-blur-xl border-b border-[rgba(255,255,255,0.04)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link href="/" className="font-display text-2xl text-gold-gradient font-bold">NORNA</Link>
+          <Link href="/" className="text-[#9ca3af] text-sm hover:text-white transition-colors">← Back</Link>
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-8 pb-24 pt-24 md:pt-28">
-        {/* Header */}
-        <div className="pb-12 md:pb-16">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-[var(--cream)]/30 text-xs tracking-wider hover:text-[var(--gold)] transition-colors duration-300 mb-10"
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-            Home
-          </Link>
+      <main className="relative z-10 pt-28 pb-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+              Choose Your Reading
+            </h1>
+            <p className="text-[#9ca3af] text-base sm:text-lg max-w-xl mx-auto">
+              Each reading type offers a unique perspective on your journey
+            </p>
+            <div className="section-divider mt-6" />
+          </div>
 
-          <p className="text-[var(--gold)]/50 text-[11px] tracking-[0.4em] uppercase mb-4">Select Your Spread</p>
-          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl mb-4">
-            <span className="text-gold-gradient">Choose Your Reading</span>
-          </h1>
-          <p className="text-[var(--cream)]/40 text-sm md:text-base max-w-lg leading-relaxed">
-            Each spread reveals different aspects of your journey. Select the one that resonates with your spirit.
-          </p>
-        </div>
-
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {readings.map((r, i) => (
-            <Link
-              key={r.id}
-              href={r.href}
-              className={`group relative rounded-2xl overflow-hidden border transition-all duration-500 ${
-                r.soon
-                  ? "border-[var(--cream)]/[0.03] opacity-40 pointer-events-none"
-                  : "border-[var(--gold)]/[0.08] hover:border-[var(--gold)]/25 hover:shadow-xl hover:shadow-[var(--gold)]/5"
-              }`}
-              style={{ opacity: 0, animation: `fadeInUp 0.6s ease-out ${150 + i * 80}ms forwards` }}
-            >
-              {/* Background image */}
-              <div className="absolute inset-0">
-                <Image
-                  src={r.image}
-                  alt={r.title}
-                  fill
-                  className="object-cover opacity-30 transition-all duration-700 group-hover:opacity-40 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--deep)] via-[var(--deep)]/80 to-[var(--deep)]/60" />
-              </div>
-
-              {/* Badge */}
-              {r.popular && (
-                <span className="absolute top-5 right-5 bg-[var(--gold)] text-[var(--deep)] text-[9px] font-bold tracking-wider uppercase px-3 py-1 rounded-full shadow-md shadow-[var(--gold)]/20 z-10">
-                  Most Popular
-                </span>
-              )}
-              {r.soon && (
-                <span className="absolute top-5 right-5 bg-[var(--purple)]/40 text-[var(--cream)]/60 text-[9px] tracking-wider uppercase px-3 py-1 rounded-full border border-[var(--purple)]/20 z-10">
-                  Coming Soon
-                </span>
-              )}
-
-              <div className="relative z-10 p-7 md:p-8">
-                <h2 className="font-display text-xl text-[var(--cream)] group-hover:text-[var(--gold)] transition-colors duration-300 mb-1">
-                  {r.title}
-                </h2>
-                <p className="text-[var(--gold)]/40 text-[10px] tracking-[0.2em] uppercase mb-4">{r.subtitle}</p>
-                <p className="text-[var(--cream)]/40 text-sm leading-relaxed mb-6">{r.desc}</p>
-
-                {/* Features */}
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {r.features.map((f, j) => (
-                    <span key={j} className="text-[10px] text-[var(--cream)]/30 tracking-wider border border-[var(--cream)]/[0.08] rounded-full px-3 py-1">
-                      {f}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Price + CTA */}
-                <div className="flex items-center justify-between pt-4 border-t border-[var(--gold)]/[0.06]">
-                  <span className={`text-sm font-semibold tracking-wider ${r.price === "Free" ? "text-emerald-400/70" : "text-[var(--gold)]"}`}>
-                    {r.price}
-                  </span>
-                  {!r.soon && (
-                    <span className="text-[var(--gold)]/30 text-xs group-hover:text-[var(--gold)] transition-colors tracking-wider">
-                      Select →
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {readings.map((r) => (
+              <Link key={r.slug} href={`/reading/${r.slug}`} className="group glass-card overflow-hidden">
+                <div className="relative h-56 sm:h-64 overflow-hidden">
+                  <Image
+                    src={r.image}
+                    alt={r.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/30 to-transparent" />
+                  {r.badge && (
+                    <span className={`absolute top-4 right-4 border text-xs px-3 py-1 rounded-full font-medium ${r.badgeColor}`}>
+                      {r.badge}
                     </span>
                   )}
                 </div>
-              </div>
-            </Link>
-          ))}
+                <div className="p-6">
+                  <h2 className="font-display text-xl font-semibold text-white mb-2">{r.title}</h2>
+                  <p className="text-[#9ca3af] text-sm leading-relaxed mb-5">{r.desc}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#f0d48a] font-semibold">{r.price}</span>
+                    <span className="btn-gold px-5 py-2 text-sm font-semibold">
+                      Start Reading
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

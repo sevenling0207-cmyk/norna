@@ -1,37 +1,66 @@
 "use client";
+
 import { useEffect, useRef } from "react";
 
 export default function Starfield() {
-  const ref = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el || el.children.length > 0) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    // Regular stars
-    for (let i = 0; i < 160; i++) {
-      const star = document.createElement("div");
-      const size = Math.random() < 0.1 ? 2 + Math.random() * 2 : 1 + Math.random() * 1.5;
-      star.className = `star${size > 3 ? " star--large" : ""}`;
-      star.style.left = `${Math.random() * 100}%`;
-      star.style.top = `${Math.random() * 100}%`;
-      star.style.setProperty("--duration", `${2 + Math.random() * 5}s`);
-      star.style.setProperty("--delay", `${Math.random() * 4}s`);
-      star.style.width = star.style.height = `${size}px`;
-      el.appendChild(star);
+    let animId: number;
+    const stars: { x: number; y: number; r: number; phase: number; speed: number }[] = [];
+
+    function resize() {
+      canvas!.width = window.innerWidth;
+      canvas!.height = window.innerHeight;
     }
 
-    // Shooting stars
-    for (let i = 0; i < 3; i++) {
-      const shoot = document.createElement("div");
-      shoot.className = "shooting-star";
-      shoot.style.left = `${Math.random() * 60}%`;
-      shoot.style.top = `${Math.random() * 40}%`;
-      shoot.style.setProperty("--shoot-duration", `${4 + Math.random() * 4}s`);
-      shoot.style.setProperty("--shoot-delay", `${i * 5 + Math.random() * 5}s`);
-      el.appendChild(shoot);
+    function init() {
+      resize();
+      stars.length = 0;
+      const count = Math.floor((canvas!.width * canvas!.height) / 12000);
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * canvas!.width,
+          y: Math.random() * canvas!.height,
+          r: Math.random() * 1.2 + 0.3,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.002 + Math.random() * 0.004,
+        });
+      }
     }
+
+    function draw(time: number) {
+      ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
+      for (const star of stars) {
+        const opacity = 0.15 + 0.5 * (0.5 + 0.5 * Math.sin(star.phase + time * star.speed));
+        ctx!.beginPath();
+        ctx!.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx!.fillStyle = `rgba(255,255,255,${opacity})`;
+        ctx!.fill();
+      }
+      animId = requestAnimationFrame(draw);
+    }
+
+    init();
+    animId = requestAnimationFrame(draw);
+    window.addEventListener("resize", init);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", init);
+    };
   }, []);
 
-  return <div ref={ref} className="starfield" aria-hidden="true" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 z-0 pointer-events-none"
+      aria-hidden="true"
+    />
+  );
 }
