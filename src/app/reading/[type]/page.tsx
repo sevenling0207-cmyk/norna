@@ -10,19 +10,19 @@ import type { DrawnCard } from "@/lib/tarot";
 const spreadConfig: Record<string, { title: string; subtitle: string; count: number; labels: string[] }> = {
   "three-card": {
     title: "Three-Card Spread",
-    subtitle: "The threads of time converge for your answer",
+    subtitle: "Past · Present · Future",
     count: 3,
     labels: ["Past", "Present", "Future"],
   },
   love: {
     title: "Love Reading",
-    subtitle: "Let the cards illuminate the bonds between hearts",
+    subtitle: "Heart · Partner · Union",
     count: 3,
     labels: ["You", "Partner", "Connection"],
   },
   daily: {
-    title: "Daily Horoscope",
-    subtitle: "One card to set the tone for your day",
+    title: "Daily Card",
+    subtitle: "Today's guidance awaits",
     count: 1,
     labels: ["Today"],
   },
@@ -63,6 +63,7 @@ export default function ReadingPage() {
   };
 
   const flipCard = (i: number) => {
+    if (flipped[i]) return;
     const next = [...flipped];
     next[i] = true;
     setFlipped(next);
@@ -93,7 +94,7 @@ export default function ReadingPage() {
   };
 
   const handleShare = async () => {
-    const text = `✦ My Norna Reading ✦\n\n${cards.map((c, i) => `${config.labels[i]}: ${c.card.emoji} ${c.card.name}${c.reversed ? " (Reversed)" : ""}`).join("\n")}\n\nGet your reading at norna.app`;
+    const text = `✦ My Norna Reading ✦\n\n${cards.map((c, i) => `${config.labels[i]}: ${c.card.name}${c.reversed ? " (Reversed)" : ""}`).join("\n")}\n\nGet your reading at norna.app`;
     if (navigator.share) {
       await navigator.share({ title: "My Norna Reading", text });
     } else {
@@ -106,50 +107,60 @@ export default function ReadingPage() {
       <Starfield />
 
       {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between px-6 md:px-12 py-6">
-        <Link href="/" className="font-display text-xl tracking-[0.2em] text-mystic-gold">
-          NORNA
-        </Link>
+      <nav className="relative z-20 border-b border-[var(--gold)]/[0.06]">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 lg:px-8 h-16 md:h-20">
+          <Link href="/" className="font-display text-lg tracking-[0.25em] text-[var(--gold)]">
+            NORNA
+          </Link>
+        </div>
       </nav>
 
-      <div className="relative z-10 max-w-2xl mx-auto px-6 pb-20">
+      <div className="relative z-10 max-w-2xl mx-auto px-6 pb-24">
         {/* Header */}
-        <div className="pt-4 md:pt-8 pb-8">
+        <div className="pt-8 md:pt-12 pb-8">
           <Link
             href="/reading"
-            className="inline-flex items-center gap-2 text-mystic-star/40 text-sm hover:text-mystic-gold transition-colors duration-300 mb-6"
+            className="inline-flex items-center gap-2 text-[var(--cream)]/30 text-xs tracking-wider hover:text-[var(--gold)] transition-colors duration-300 mb-8"
           >
-            <span>←</span>
-            <span>Back to Readings</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+            Back
           </Link>
 
           <h1 className="font-display text-2xl sm:text-3xl md:text-4xl text-gold-gradient mb-2">
             {config.title}
           </h1>
-          <p className="text-mystic-star/40 text-sm">{config.subtitle}</p>
+          <p className="text-[var(--cream)]/30 text-xs tracking-[0.15em]">{config.subtitle}</p>
         </div>
 
-        {/* ─── Phase 1: Ask ─── */}
+        {/* ─── Phase: Ask ─── */}
         {phase === "ask" && (
-          <div className="animate-fade-in space-y-8">
+          <div className="animate-fade-in space-y-6">
             {type !== "daily" ? (
               <div className="space-y-3">
-                <label className="block font-display text-mystic-star/60 text-sm">
-                  What question is on your mind?
+                <label className="block text-[var(--cream)]/40 text-xs tracking-[0.1em] uppercase font-display">
+                  What question weighs on your mind?
                 </label>
                 <textarea
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder="Focus your intention here..."
-                  className="w-full glass rounded-2xl p-5 text-mystic-star text-sm leading-relaxed
-                             placeholder:text-mystic-star/20 focus:border-mystic-gold/40 focus:outline-none 
-                             focus:ring-1 focus:ring-mystic-gold/20 resize-none h-32 transition-all duration-300"
+                  className="w-full rounded-xl p-5 bg-[var(--deep)]/80 border border-[var(--gold)]/[0.08] text-[var(--cream)] text-sm leading-relaxed
+                             placeholder:text-[var(--cream)]/15 focus:border-[var(--gold)]/25 focus:outline-none
+                             resize-none h-32 transition-all duration-300"
                 />
+                <p className="text-[var(--cream)]/15 text-[10px]">The more specific your question, the deeper the insight.</p>
               </div>
             ) : (
-              <div className="glass rounded-2xl p-8 text-center">
-                <div className="text-4xl mb-4">🌅</div>
-                <p className="text-mystic-star/60 text-sm leading-relaxed">
+              <div className="rounded-xl border border-[var(--gold)]/[0.06] p-8 text-center">
+                <div className="w-16 h-16 mx-auto rounded-full border border-[var(--gold)]/15 flex items-center justify-center mb-5">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-[var(--gold)]/50">
+                    <circle cx="10" cy="10" r="5" stroke="currentColor" strokeWidth="1" />
+                    <path d="M10 1v4M10 15v4M1 10h4M15 10h4" stroke="currentColor" strokeWidth="1" />
+                  </svg>
+                </div>
+                <p className="text-[var(--cream)]/40 text-sm leading-relaxed">
                   Clear your mind. Take a deep breath.<br />
                   When you&apos;re ready, draw your card.
                 </p>
@@ -159,28 +170,28 @@ export default function ReadingPage() {
             <button
               onClick={handleSubmit}
               disabled={!question.trim() && type !== "daily"}
-              className="btn-shimmer w-full py-4 md:py-5 bg-mystic-gold/10 border border-mystic-gold/60 text-mystic-gold 
-                         rounded-2xl text-base md:text-lg font-display tracking-wider
-                         hover:bg-mystic-gold hover:text-mystic-deep
-                         disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-mystic-gold/10 disabled:hover:text-mystic-gold
+              className="btn-shimmer w-full py-4 bg-[var(--gold)]/10 border border-[var(--gold)]/40 text-[var(--gold)]
+                         rounded-xl text-sm font-display tracking-[0.15em]
+                         hover:bg-[var(--gold)] hover:text-[var(--deep)]
+                         disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-[var(--gold)]/10 disabled:hover:text-[var(--gold)]
                          transition-all duration-500"
             >
-              Draw {config.count === 1 ? "Your Card" : "Your Cards"} ✦
+              Draw {config.count === 1 ? "Your Card" : "Your Cards"}
             </button>
           </div>
         )}
 
-        {/* ─── Phase 2: Cards ─── */}
+        {/* ─── Phase: Cards ─── */}
         {phase === "cards" && (
           <div className="animate-fade-in">
-            <p className="text-center text-mystic-star/40 text-sm mb-8 tracking-wider">
+            <p className="text-center text-[var(--cream)]/25 text-xs mb-10 tracking-[0.15em]">
               Tap each card to reveal its message
             </p>
 
-            <div className={`flex justify-center gap-4 md:gap-6 ${config.count === 1 ? "" : "flex-wrap"}`}>
+            <div className={`flex justify-center gap-5 md:gap-8 ${config.count === 1 ? "" : "flex-wrap"}`}>
               {cards.map((card, i) => (
-                <div key={i} className="text-center">
-                  <p className="text-mystic-gold/50 text-[10px] md:text-xs mb-3 tracking-[0.2em] uppercase font-display">
+                <div key={i} className="text-center" style={{ opacity: 0, animation: `fadeInUp 0.5s ease-out ${i * 150}ms forwards` }}>
+                  <p className="text-[var(--gold)]/35 text-[10px] mb-3 tracking-[0.25em] uppercase font-display">
                     {config.labels[i]}
                   </p>
                   <TarotCard card={card} flipped={flipped[i]} onClick={() => flipCard(i)} />
@@ -189,11 +200,11 @@ export default function ReadingPage() {
             </div>
 
             {flipped.every(Boolean) && loading && (
-              <div className="text-center mt-12">
-                <div className="inline-flex items-center gap-3 glass rounded-full px-8 py-4">
-                  <div className="w-2 h-2 bg-mystic-gold rounded-full animate-pulse" />
-                  <p className="text-mystic-gold font-display text-sm tracking-wider">
-                    The Norns are reading your fate...
+              <div className="text-center mt-14">
+                <div className="inline-flex items-center gap-3 rounded-full border border-[var(--gold)]/[0.08] px-8 py-4">
+                  <div className="w-1.5 h-1.5 bg-[var(--gold)]/60 rounded-full animate-pulse" />
+                  <p className="text-[var(--gold)]/60 font-display text-xs tracking-[0.15em]">
+                    The Norns are weaving your fate...
                   </p>
                 </div>
               </div>
@@ -201,23 +212,22 @@ export default function ReadingPage() {
           </div>
         )}
 
-        {/* ─── Phase 3: Reading ─── */}
+        {/* ─── Phase: Reading ─── */}
         {phase === "reading" && readingData && (
-          <div className="space-y-6" style={{ animation: "slideUp 0.6s ease-out forwards" }}>
-            {/* Card summary row */}
-            <div className="flex justify-center gap-4 mb-8">
+          <div className="space-y-6 animate-slide-up">
+            {/* Card summary */}
+            <div className="flex justify-center gap-5 mb-10">
               {cards.map((card, i) => (
                 <div key={i} className="text-center">
-                  <p className="text-mystic-gold/40 text-[9px] tracking-[0.15em] uppercase mb-2 font-display">
+                  <p className="text-[var(--gold)]/30 text-[9px] tracking-[0.2em] uppercase mb-2 font-display">
                     {config.labels[i]}
                   </p>
-                  <div className="w-16 h-24 md:w-20 md:h-28 glass rounded-xl flex flex-col items-center justify-center border-mystic-gold/20">
-                    <span className="text-2xl md:text-3xl mb-1">{card.card.emoji || "✦"}</span>
-                    <p className="text-mystic-star/70 text-[8px] md:text-[9px] leading-tight px-1 font-display">
+                  <div className="w-16 h-24 md:w-20 md:h-28 rounded-lg border border-[var(--gold)]/10 bg-[var(--deep)]/60 flex flex-col items-center justify-center">
+                    <p className="text-[var(--cream)]/60 text-[8px] md:text-[9px] leading-tight px-1 font-display text-center">
                       {card.card.name}
                     </p>
                     {card.reversed && (
-                      <p className="text-mystic-gold/40 text-[7px] mt-0.5">Reversed</p>
+                      <p className="text-[var(--gold)]/30 text-[7px] mt-1">Reversed</p>
                     )}
                   </div>
                 </div>
@@ -225,21 +235,26 @@ export default function ReadingPage() {
             </div>
 
             {/* Free Reading */}
-            <div className="glass rounded-2xl p-6 md:p-8">
-              <div className="ornament-divider text-mystic-gold/50 text-xs tracking-[0.2em] mb-6">
-                ✦ Your Reading ✦
+            <div className="rounded-xl border border-[var(--gold)]/[0.06] p-6 md:p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[var(--gold)]/15" />
+                <span className="text-[var(--gold)]/40 text-[10px] tracking-[0.25em] uppercase font-display">Your Reading</span>
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[var(--gold)]/15" />
               </div>
-              <div className="text-mystic-star/70 leading-relaxed text-sm md:text-base space-y-4">
+              <div className="text-[var(--cream)]/55 leading-relaxed text-sm space-y-4">
                 <p>{readingData.free}</p>
               </div>
             </div>
 
             {/* Premium Locked */}
-            <div className="relative glass rounded-2xl p-6 md:p-8 overflow-hidden">
-              <div className="ornament-divider text-mystic-gold/50 text-xs tracking-[0.2em] mb-6">
-                ✦ Deep Insight ✦
+            <div className="relative rounded-xl border border-[var(--gold)]/[0.06] p-6 md:p-8 overflow-hidden">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[var(--gold)]/15" />
+                <span className="text-[var(--gold)]/40 text-[10px] tracking-[0.25em] uppercase font-display">Deep Insight</span>
+                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[var(--gold)]/15" />
               </div>
-              <div className="text-mystic-star/70 leading-relaxed text-sm space-y-4 blur-[6px] select-none pointer-events-none">
+
+              <div className="text-[var(--cream)]/50 leading-relaxed text-sm space-y-4 blur-[6px] select-none pointer-events-none">
                 {readingData.premium
                   .split("\n\n")
                   .slice(0, 4)
@@ -249,35 +264,38 @@ export default function ReadingPage() {
               </div>
 
               {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-mystic-deep via-mystic-deep/60 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[var(--deep)] via-[var(--deep)]/70 to-transparent pointer-events-none" />
 
-              {/* Unlock prompt */}
+              {/* Unlock CTA */}
               <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col items-center">
-                <div className="w-10 h-10 rounded-full border border-mystic-gold/30 flex items-center justify-center mb-3">
-                  <span className="text-mystic-gold">🔮</span>
+                <div className="w-10 h-10 rounded-full border border-[var(--gold)]/20 flex items-center justify-center mb-3">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-[var(--gold)]/50">
+                    <rect x="3" y="7" width="10" height="8" rx="1.5" stroke="currentColor" strokeWidth="1" />
+                    <path d="M5 7V5a3 3 0 116 0v2" stroke="currentColor" strokeWidth="1" />
+                  </svg>
                 </div>
-                <p className="text-mystic-star/50 text-xs mb-4 tracking-wider">
-                  The full revelation awaits...
+                <p className="text-[var(--cream)]/30 text-[10px] tracking-[0.15em]">
+                  The full revelation awaits
                 </p>
               </div>
             </div>
 
             {/* Unlock button */}
             <button
-              className="btn-shimmer w-full py-4 md:py-5 bg-mystic-gold text-mystic-deep 
-                         rounded-2xl text-base md:text-lg font-display font-semibold tracking-wider
-                         hover:bg-mystic-gold-light transition-all duration-300
-                         shadow-lg shadow-mystic-gold/20"
+              className="btn-shimmer w-full py-4 bg-[var(--gold)] text-[var(--deep)]
+                         rounded-xl text-sm font-semibold tracking-[0.1em]
+                         hover:bg-[var(--gold-light)] transition-all duration-300
+                         shadow-lg shadow-[var(--gold)]/15"
             >
-              Unlock Full Reading — $2.99 ✦
+              Unlock Full Reading — $2.99
             </button>
 
-            {/* Share + New Reading */}
+            {/* Actions */}
             <div className="flex gap-3">
               <button
                 onClick={handleShare}
-                className="flex-1 py-3 glass rounded-2xl text-mystic-star/40 hover:text-mystic-gold hover:border-mystic-gold/30 
-                           text-sm transition-all duration-300 tracking-wider"
+                className="flex-1 py-3 rounded-xl border border-[var(--gold)]/[0.06] text-[var(--cream)]/30 hover:text-[var(--gold)] hover:border-[var(--gold)]/20
+                           text-xs tracking-wider transition-all duration-300"
               >
                 Share ↗
               </button>
@@ -288,8 +306,8 @@ export default function ReadingPage() {
                   setCards([]);
                   setReadingData(null);
                 }}
-                className="flex-1 py-3 glass rounded-2xl text-mystic-star/40 hover:text-mystic-gold hover:border-mystic-gold/30 
-                           text-sm transition-all duration-300 tracking-wider"
+                className="flex-1 py-3 rounded-xl border border-[var(--gold)]/[0.06] text-[var(--cream)]/30 hover:text-[var(--gold)] hover:border-[var(--gold)]/20
+                           text-xs tracking-wider transition-all duration-300"
               >
                 New Reading
               </button>
