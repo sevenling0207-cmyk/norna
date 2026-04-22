@@ -1,106 +1,393 @@
 "use client";
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import Starfield from "@/components/Starfield";
-import TarotCard from "@/components/TarotCard";
-import { drawCards } from "@/lib/tarot";
-import type { DrawnCard } from "@/lib/tarot";
 
-const spreadConfig: Record<string, { title: string; subtitle: string; count: number; labels: string[] }> = {
-  "three-card": {
-    title: "Three-Card Spread",
-    subtitle: "Past · Present · Future",
-    count: 3,
-    labels: ["Past", "Present", "Future"],
-  },
-  love: {
-    title: "Love Reading",
-    subtitle: "Heart · Partner · Union",
-    count: 3,
-    labels: ["You", "Partner", "Connection"],
-  },
-  daily: {
-    title: "Daily Horoscope",
-    subtitle: "Today's guidance awaits",
-    count: 1,
-    labels: ["Today"],
-  },
-  "celtic-cross": {
-    title: "Celtic Cross",
-    subtitle: "A comprehensive life reading",
-    count: 6,
-    labels: ["Present", "Challenge", "Foundation", "Past", "Crown", "Future"],
-  },
-};
+import { useState, useEffect, useCallback, useRef } from "react";
+import { drawCards, type DrawnCard } from "@/lib/tarot";
+
+/* ─── Types ─── */
+type Phase = "cinematic" | "greet" | "topic" | "spread" | "select" | "reveal" | "reading" | "result";
 
 interface ReadingResult {
-  cards: {
-    id: number;
-    name: string;
-    emoji: string;
-    reversed: boolean;
-    position: string;
-    keywords: string[];
-    meaning: string;
-  }[];
+  cards: { id: number; name: string; emoji: string; reversed: boolean; position: string; keywords: string[]; meaning: string }[];
   free: string;
   premium: string;
 }
 
-export default function ReadingPage() {
-  const params = useParams();
-  const type = params.type as string;
-  const config = spreadConfig[type] || spreadConfig["three-card"];
+/* ─── Static Data ─── */
+const STARS = Array.from({ length: 30 }, (_, i) => ({
+  left: `${(13 * i + 7) * 43 % 100}%`,
+  top: `${(17 * i + 5) * 61 % 100}%`,
+  delay: `${(0.14 * i % 2.2).toFixed(2)}s`,
+  size: `${2 + i % 3}px`,
+}));
 
-  const [question, setQuestion] = useState("");
-  const [phase, setPhase] = useState<"ask" | "cards" | "reading">("ask");
-  const [cards, setCards] = useState<DrawnCard[]>([]);
-  const [flipped, setFlipped] = useState<boolean[]>([]);
+const TOPICS = [
+  { key: "love", label: "Love & Romance", emoji: "💕" },
+  { key: "career", label: "Career & Work", emoji: "💼" },
+  { key: "finance", label: "Wealth & Fortune", emoji: "💰" },
+  { key: "today", label: "Today's Guidance", emoji: "✨" },
+  { key: "general", label: "General Insight", emoji: "🔮" },
+];
+
+const SPREADS = [
+  { key: "1", label: "1 Card", desc: "Quick insight" },
+  { key: "3", label: "3 Cards", desc: "Past · Present · Future" },
+];
+
+const GREETINGS = [
+  [
+    { text: "The threads of fate stir... someone approaches.", expression: "✦" },
+    { text: "Ah, it is you. The Norns have been expecting your visit.", expression: "⚡" },
+  ],
+  [
+    { text: "The stars whisper of a seeker with a burning question...", expression: "★" },
+    { text: "Welcome, traveler. Shall we peer into the weave of destiny?", expression: "✦" },
+  ],
+  [
+    { text: "I sense the turning of the great wheel...", expression: "⚡" },
+    { text: "Your thread glows brightly today. Come, let us read what the fates have woven.", expression: "★" },
+  ],
+];
+
+const POSITIONS_3 = ["Past", "Present", "Future"];
+
+/* ─── Cinematic Intro ─── */
+function CinematicIntro({ onComplete }: { onComplete: () => void }) {
+  const [leaving, setLeaving] = useState(false);
+  const done = useRef(false);
+
+  const skip = useCallback(() => {
+    if (done.current) return;
+    done.current = true;
+    setLeaving(true);
+    setTimeout(onComplete, 700);
+  }, [onComplete]);
+
+  useEffect(() => {
+    const t = setTimeout(skip, 3200);
+    return () => clearTimeout(t);
+  }, [skip]);
+
+  return (
+    <div className={`tarot-cinematic${leaving ? " leaving" : ""}`} onClick={skip}>
+      <div className="tarot-cin-stars" aria-hidden>
+        {STARS.map((s, i) => (
+          <span key={i} className="tarot-cin-star" style={{ left: s.left, top: s.top, width: s.size, height: s.size, animationDelay: s.delay }} />
+        ))}
+      </div>
+      <div className="tarot-cin-flash" aria-hidden />
+      <div className="tarot-cin-content">
+        <div className="tarot-cin-center" aria-hidden>
+          <div className="tarot-cin-aura" />
+          <div className="tarot-cin-ring tarot-cin-ring-outer" />
+          <div className="tarot-cin-ring tarot-cin-ring-mid" />
+          <div className="tarot-cin-ring tarot-cin-ring-inner" />
+          <div className="tarot-cin-icon-frame">
+            <svg viewBox="0 0 100 100" fill="none">
+              <circle cx="50" cy="50" r="40" stroke="rgba(212,168,83,0.6)" strokeWidth="1" />
+              <path d="M50 10 L58 38 L90 38 L64 54 L72 82 L50 66 L28 82 L36 54 L10 38 L42 38 Z" fill="rgba(212,168,83,0.15)" stroke="rgba(212,168,83,0.5)" strokeWidth="0.5" />
+              <text x="50" y="56" textAnchor="middle" fill="rgba(212,168,83,0.8)" fontSize="14" fontFamily="Playfair Display, serif" fontWeight="700">N</text>
+            </svg>
+          </div>
+        </div>
+        <div className="tarot-cin-title-block">
+          <div className="tarot-cin-title-stars" aria-hidden>
+            <span>★</span><span>✦</span><span>★</span>
+          </div>
+          <h1 className="tarot-cin-title">NORNA</h1>
+        </div>
+        <p className="tarot-cin-subtitle">Ancient Wisdom · Modern Insight</p>
+      </div>
+      <p className="tarot-cin-skip" aria-hidden>TAP TO SKIP</p>
+    </div>
+  );
+}
+
+/* ─── Typewriter Dialogue ─── */
+function Dialogue({ text, onComplete, speed = 30 }: { text: string; onComplete?: () => void; speed?: number }) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+  const [ready, setReady] = useState(false);
+  const idx = useRef(0);
+  const interval = useRef<ReturnType<typeof setInterval>>(undefined);
+  const timeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  const finish = useCallback(() => {
+    if (interval.current) clearInterval(interval.current);
+    if (timeout.current) clearTimeout(timeout.current);
+    setDisplayed(text);
+    setDone(true);
+    timeout.current = setTimeout(() => setReady(true), 400);
+  }, [text]);
+
+  useEffect(() => {
+    idx.current = 0;
+    setDisplayed("");
+    setDone(false);
+    setReady(false);
+    if (timeout.current) clearTimeout(timeout.current);
+    interval.current = setInterval(() => {
+      idx.current++;
+      if (idx.current >= text.length) {
+        clearInterval(interval.current!);
+        setDisplayed(text);
+        setDone(true);
+        timeout.current = setTimeout(() => setReady(true), 400);
+      } else {
+        setDisplayed(text.slice(0, idx.current));
+      }
+    }, speed);
+    return () => {
+      if (interval.current) clearInterval(interval.current);
+      if (timeout.current) clearTimeout(timeout.current);
+    };
+  }, [text, speed]);
+
+  const handleClick = () => {
+    if (!done) { finish(); return; }
+    if (ready && onComplete) onComplete();
+  };
+
+  return (
+    <div className={`tarot-dialogue${done && ready ? " tarot-dialogue--ready" : ""}`} onClick={handleClick} style={{ cursor: "pointer" }}>
+      <div className="tarot-dlg-name">
+        <span className="tarot-dlg-icon">⚡</span>
+        Norna
+      </div>
+      <div className="tarot-dlg-text">
+        {displayed}
+        {done && ready && <span className="tarot-dlg-next"> ▼</span>}
+        {!done && <span className="tarot-dlg-cursor">|</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Card Back SVG ─── */
+function CardBack() {
+  return (
+    <div className="tarot-card-back">
+      <div className="tarot-card-back-pattern">
+        <div className="tarot-card-back-diamond" />
+        <div className="tarot-card-back-rays" />
+      </div>
+      <div className="tarot-card-back-star">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L14.09 8.26L20.18 8.58L15.54 12.42L17.09 18.5L12 15.27L6.91 18.5L8.46 12.42L3.82 8.58L9.91 8.26L12 2Z" fill="rgba(212,168,83,0.15)" stroke="rgba(212,168,83,0.5)" strokeWidth="0.5" />
+        </svg>
+      </div>
+      <div className="tarot-card-back-label">NORNA</div>
+    </div>
+  );
+}
+
+/* ─── TarotCard ─── */
+function TarotCard({ card, flipped, selected, selectable, onClick, orderBadge }: {
+  card: DrawnCard;
+  flipped: boolean;
+  selected: boolean;
+  selectable: boolean;
+  onClick?: () => void;
+  orderBadge?: number;
+}) {
+  const imgSrc = card.card.image;
+  const name = card.card.name;
+  const direction = card.reversed ? "Reversed ↺" : "Upright ↑";
+
+  return (
+    <div
+      className={`tarot-card-slot ${flipped ? "flipped" : ""} ${selected ? "selected" : ""} ${selectable ? "selectable" : ""}`}
+      onClick={selectable ? onClick : undefined}
+    >
+      <div className="tarot-card-inner">
+        <CardBack />
+        <div className={`tarot-card-front ${card.reversed ? "reversed" : ""}`}>
+          {imgSrc ? (
+            <img className="tarot-card-front-img" src={imgSrc} alt={name} draggable={false} />
+          ) : (
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(145deg, #1a1535, #0d0b20)", fontSize: "2rem" }}>
+              {card.card.emoji}
+            </div>
+          )}
+          <div className="tarot-card-overlay">
+            <div className="tarot-card-name-main">{name}</div>
+            <div className="tarot-card-direction">{direction}</div>
+          </div>
+        </div>
+      </div>
+      <div className="tarot-card-burst" />
+      <div className="tarot-card-rays" />
+      <div className="tarot-card-sparkles">
+        {Array.from({ length: 8 }).map((_, i) => <span key={i} className="tarot-sparkle" />)}
+      </div>
+      {orderBadge !== undefined && <div className="tarot-card-badge">{orderBadge}</div>}
+    </div>
+  );
+}
+
+/* ─── Arc Deck (Fan of cards to select from) ─── */
+function ArcDeck({ cards, selected, onSelect, maxSelect }: {
+  cards: DrawnCard[];
+  selected: Set<number>;
+  onSelect: (i: number) => void;
+  maxSelect: number;
+}) {
+  const total = cards.length;
+  const arcSpan = Math.min(total * 4, 70); // degrees
+  const radius = 420;
+
+  return (
+    <div className="tarot-arc-deck">
+      {cards.map((card, i) => {
+        const angle = -arcSpan / 2 + (arcSpan / (total - 1 || 1)) * i;
+        const rad = (angle * Math.PI) / 180;
+        const x = Math.sin(rad) * radius;
+        const y = -Math.cos(rad) * radius + radius;
+        const isSel = selected.has(i);
+        const canSelect = !isSel && selected.size < maxSelect;
+
+        return (
+          <div
+            key={i}
+            className="tarot-arc-card-wrapper"
+            style={{
+              transform: `translateX(calc(-50% + ${x}px)) translateY(${y - radius + 30}px) rotate(${angle}deg)`,
+              zIndex: isSel ? 20 : i,
+              opacity: isSel ? 0.3 : 1,
+              transition: "opacity 0.3s, transform 0.3s",
+            }}
+          >
+            <div
+              className={`tarot-card-slot ${canSelect ? "selectable" : ""} ${isSel ? "selected" : ""}`}
+              onClick={canSelect ? () => onSelect(i) : undefined}
+            >
+              <div className="tarot-card-inner">
+                <CardBack />
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Main App ─── */
+export default function TarotReadingApp() {
+  const [phase, setPhase] = useState<Phase>("cinematic");
+  const [greetIdx, setGreetIdx] = useState(0);
+  const [greeting] = useState(() => GREETINGS[Math.floor(Math.random() * GREETINGS.length)]);
+  const [topic, setTopic] = useState("");
+  const [spreadCount, setSpreadCount] = useState(0);
+  const [deckCards] = useState(() => drawCards(22)); // full major arcana deck to pick from
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set());
+  const [drawnCards, setDrawnCards] = useState<DrawnCard[]>([]);
+  const [flippedCards, setFlippedCards] = useState<boolean[]>([]);
+  const [flipIdx, setFlipIdx] = useState(0);
   const [readingData, setReadingData] = useState<ReadingResult | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    if (!question.trim() && type !== "daily") return;
-    const drawn = drawCards(config.count);
-    setCards(drawn);
-    setFlipped(new Array(config.count).fill(false));
-    setPhase("cards");
-  };
-
-  const flipCard = (i: number) => {
-    if (flipped[i]) return;
-    const next = [...flipped];
-    next[i] = true;
-    setFlipped(next);
-    if (next.every(Boolean)) {
-      setTimeout(() => fetchReading(), 800);
+  // Advance greeting dialogue
+  const advanceGreet = useCallback(() => {
+    if (greetIdx < greeting.length - 1) {
+      setGreetIdx(greetIdx + 1);
+    } else {
+      setPhase("topic");
     }
-  };
+  }, [greetIdx, greeting.length]);
+
+  // Select topic
+  const selectTopic = useCallback((key: string) => {
+    setTopic(key);
+    setPhase("spread");
+  }, []);
+
+  // Select spread
+  const selectSpread = useCallback((count: number) => {
+    setSpreadCount(count);
+    setSelectedIndices(new Set());
+    setPhase("select");
+  }, []);
+
+  // Select card from arc
+  const selectCard = useCallback((i: number) => {
+    setSelectedIndices(prev => {
+      const next = new Set(prev);
+      next.add(i);
+      return next;
+    });
+  }, []);
+
+  // Confirm selection
+  const confirmSelection = useCallback(() => {
+    const chosen = Array.from(selectedIndices).map(i => deckCards[i]);
+    setDrawnCards(chosen);
+    setFlippedCards(new Array(chosen.length).fill(false));
+    setFlipIdx(0);
+    setPhase("reveal");
+  }, [selectedIndices, deckCards]);
+
+  // Flip next card
+  const flipNext = useCallback(() => {
+    if (flipIdx >= drawnCards.length) return;
+    setFlippedCards(prev => {
+      const next = [...prev];
+      next[flipIdx] = true;
+      return next;
+    });
+    setFlipIdx(prev => prev + 1);
+  }, [flipIdx, drawnCards.length]);
+
+  // After all cards flipped, wait then fetch reading
+  useEffect(() => {
+    if (phase !== "reveal") return;
+    if (flippedCards.length > 0 && flippedCards.every(Boolean)) {
+      const t = setTimeout(() => {
+        fetchReading();
+      }, 1200);
+      return () => clearTimeout(t);
+    }
+  }, [flippedCards, phase]);
 
   const fetchReading = async () => {
     setLoading(true);
+    const labels = spreadCount === 1 ? ["Focus"] : POSITIONS_3;
     try {
       const res = await fetch("/api/reading", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, type }),
+        body: JSON.stringify({
+          question: TOPICS.find(t => t.key === topic)?.label || "General guidance",
+          type: spreadCount === 1 ? "daily" : "three-card",
+        }),
       });
       const data: ReadingResult = await res.json();
       setReadingData(data);
     } catch {
       setReadingData({
         cards: [],
-        free: "The cosmic connection wavered. The cards have been drawn, but the fates ask you to try again.",
+        free: "The cosmic threads wavered momentarily. Your cards have been drawn, but the Norns ask you to try again.",
         premium: "",
       });
     }
     setLoading(false);
-    setPhase("reading");
+    setPhase("result");
+  };
+
+  const restart = () => {
+    setPhase("cinematic");
+    setGreetIdx(0);
+    setTopic("");
+    setSpreadCount(0);
+    setSelectedIndices(new Set());
+    setDrawnCards([]);
+    setFlippedCards([]);
+    setFlipIdx(0);
+    setReadingData(null);
   };
 
   const handleShare = async () => {
-    const text = `✦ My Norna Reading ✦\n\n${cards.map((c, i) => `${config.labels[i]}: ${c.card.name}${c.reversed ? " (Reversed)" : ""}`).join("\n")}\n\nGet your reading at norna.app`;
+    const labels = spreadCount === 1 ? ["Focus"] : POSITIONS_3;
+    const text = `✦ My Norna Reading ✦\n\n${drawnCards.map((c, i) => `${labels[i] || ""}: ${c.card.name}${c.reversed ? " (Reversed)" : ""}`).join("\n")}\n\nDiscover your fate at norna.app`;
     if (navigator.share) {
       await navigator.share({ title: "My Norna Reading", text });
     } else {
@@ -110,215 +397,292 @@ export default function ReadingPage() {
 
   return (
     <>
-      <Starfield />
+      {/* ─── Cinematic ─── */}
+      {phase === "cinematic" && <CinematicIntro onComplete={() => setPhase("greet")} />}
 
-      {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[rgba(10,10,20,0.85)] backdrop-blur-xl border-b border-[rgba(255,255,255,0.04)]">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
-          <Link href="/" className="font-display text-2xl text-gold-gradient font-bold">NORNA</Link>
-          <Link href="/reading" className="text-[#9ca3af] text-sm hover:text-white transition-colors">← Back</Link>
-        </div>
-      </nav>
-
-      <main className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 pb-24 pt-24 sm:pt-28">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">{config.title}</h1>
-          <p className="text-[#9ca3af] text-sm tracking-wide">{config.subtitle}</p>
-          <div className="section-divider mt-4" />
-        </div>
-
-        {/* ─── Ask Phase ─── */}
-        {phase === "ask" && (
-          <div className="space-y-6 animate-fade-in-up">
-            {type !== "daily" ? (
-              <div className="space-y-3">
-                <label className="block text-[#9ca3af] text-xs tracking-wider uppercase font-display">
-                  What question weighs on your mind?
-                </label>
-                <textarea
-                  value={question}
-                  onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Focus your intention here..."
-                  className="w-full rounded-xl p-5 bg-[rgba(255,255,255,0.03)] border border-[rgba(212,168,83,0.1)]
-                             text-white text-sm leading-relaxed placeholder:text-[#9ca3af]/30
-                             focus:border-[rgba(212,168,83,0.3)] focus:outline-none focus:ring-1 focus:ring-[rgba(212,168,83,0.15)]
-                             resize-none h-32 transition-all duration-300"
-                />
-                <p className="text-[#9ca3af]/50 text-xs">The more specific your question, the deeper the insight.</p>
-              </div>
-            ) : (
-              <div className="glass-card p-8 text-center">
-                <div className="w-16 h-16 mx-auto rounded-full border border-[rgba(212,168,83,0.15)] flex items-center justify-center mb-5">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#d4a853]/60">
-                    <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1" />
-                    <path d="M12 2v4M12 18v4M2 12h4M18 12h4" stroke="currentColor" strokeWidth="1" />
-                  </svg>
-                </div>
-                <p className="text-[#9ca3af] text-sm leading-relaxed">
-                  Clear your mind. Take a deep breath.<br />
-                  When you&apos;re ready, draw your card.
-                </p>
-              </div>
-            )}
-
-            <button
-              onClick={handleSubmit}
-              disabled={!question.trim() && type !== "daily"}
-              className="btn-gold w-full py-4 text-sm font-semibold tracking-wider
-                         disabled:opacity-20 disabled:cursor-not-allowed"
-            >
-              Draw {config.count === 1 ? "Your Card" : "Your Cards"}
-            </button>
+      {/* ─── App Shell ─── */}
+      {phase !== "cinematic" && (
+        <div className={`tarot-app${phase === "result" ? " phase-result" : ""}`}>
+          {/* Stars */}
+          <div className="tarot-stars" aria-hidden>
+            {STARS.map((s, i) => (
+              <span key={i} className="tarot-star" style={{ left: s.left, top: s.top, width: s.size, height: s.size, animationDelay: s.delay, ["--dur" as string]: `${2 + (i % 3)}s` }} />
+            ))}
           </div>
-        )}
 
-        {/* ─── Cards Phase ─── */}
-        {phase === "cards" && (
-          <div>
-            <p className="text-center text-[#9ca3af]/60 text-xs mb-10 tracking-wider">
-              Tap each card to reveal its message
-            </p>
+          {/* ─── Greeting / Topic / Spread phases ─── */}
+          {(phase === "greet" || phase === "topic" || phase === "spread") && (
+            <div className="tarot-scene">
+              {/* Background gradient */}
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "radial-gradient(ellipse at 50% 30%, #1a1040 0%, #0a0a14 60%, #050510 100%)",
+              }} />
+              {/* Norn symbol in center */}
+              <div style={{
+                position: "absolute", top: "20%", left: "50%", transform: "translateX(-50%)",
+                width: 200, height: 200, opacity: 0.15,
+              }}>
+                <svg viewBox="0 0 200 200" fill="none">
+                  <circle cx="100" cy="100" r="80" stroke="rgba(212,168,83,0.4)" strokeWidth="1" />
+                  <circle cx="100" cy="100" r="60" stroke="rgba(155,126,240,0.3)" strokeWidth="0.5" />
+                  <path d="M100 20 L116 76 L180 76 L128 108 L144 164 L100 132 L56 164 L72 108 L20 76 L84 76 Z" fill="rgba(212,168,83,0.1)" stroke="rgba(212,168,83,0.3)" strokeWidth="0.5" />
+                </svg>
+              </div>
 
-            <div className={`flex justify-center gap-4 sm:gap-6 flex-wrap`}>
-              {cards.map((card, i) => (
-                <div
-                  key={i}
-                  className="text-center"
-                  style={{ opacity: 0, animation: `fadeInUp 0.5s ease-out ${i * 150}ms forwards` }}
-                >
-                  <p className="text-[#d4a853]/50 text-[10px] mb-3 tracking-widest uppercase font-display">
-                    {config.labels[i]}
-                  </p>
-                  <TarotCard
-                    isFlipped={flipped[i]}
-                    onClick={() => flipCard(i)}
-                    size={config.count <= 3 ? "lg" : "md"}
-                    cardImage={card.card.image || undefined}
-                    cardName={card.card.name}
-                    isReversed={card.reversed}
-                    frontContent={
-                      <div className="text-center px-2">
-                        <p className="font-display text-white text-xs sm:text-sm leading-tight mb-1">{card.card.name}</p>
-                        {card.reversed && <p className="text-[#d4a853]/50 text-[10px]">Reversed</p>}
-                      </div>
-                    }
+              {/* Bottom overlay with dialogue */}
+              <div className="tarot-bottom-overlay">
+                {phase === "greet" && (
+                  <Dialogue
+                    key={`greet-${greetIdx}`}
+                    text={greeting[greetIdx].text}
+                    onComplete={advanceGreet}
                   />
-                </div>
-              ))}
-            </div>
+                )}
 
-            {flipped.every(Boolean) && loading && (
-              <div className="text-center mt-14">
-                <div className="inline-flex items-center gap-3 glass-card px-8 py-4">
-                  <div className="w-2 h-2 bg-[#d4a853]/60 rounded-full animate-pulse" />
-                  <p className="text-[#d4a853]/70 font-display text-xs tracking-wider">
-                    The Norns are weaving your fate...
-                  </p>
-                </div>
+                {phase === "topic" && (
+                  <>
+                    <Dialogue
+                      text="What weighs upon your mind today? Choose a thread of fate to follow..."
+                      speed={25}
+                    />
+                    <div className="tarot-topics">
+                      {TOPICS.map(t => (
+                        <button key={t.key} className="tarot-topic-btn" onClick={() => selectTopic(t.key)}>
+                          <span className="tarot-topic-emoji">{t.emoji}</span>
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {phase === "spread" && (
+                  <>
+                    <Dialogue
+                      text="How many threads shall we pull from the loom?"
+                      speed={25}
+                    />
+                    <div className="tarot-options">
+                      {SPREADS.map(s => (
+                        <button key={s.key} className="tarot-option-btn" onClick={() => selectSpread(Number(s.key))}>
+                          <span style={{ fontWeight: 600 }}>{s.label}</span>
+                          <span style={{ fontSize: "0.68rem", color: "rgba(200,180,255,0.6)" }}>{s.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* ─── Reading Phase ─── */}
-        {phase === "reading" && readingData && (
-          <div className="space-y-6 animate-fade-in-up">
-            {/* Card summary */}
-            <div className="flex justify-center gap-4 mb-10 flex-wrap">
-              {cards.map((card, i) => (
-                <div key={i} className="text-center">
-                  <p className="text-[#d4a853]/40 text-[9px] tracking-widest uppercase mb-2 font-display">
-                    {config.labels[i]}
-                  </p>
-                  <div className="w-16 h-24 sm:w-20 sm:h-28 rounded-lg border border-[rgba(212,168,83,0.12)] bg-[rgba(255,255,255,0.02)] overflow-hidden relative flex flex-col items-center justify-center">
-                    {card.card.image ? (
-                      <>
-                        <img
-                          src={card.card.image}
-                          alt={card.card.name}
-                          className="absolute inset-0 w-full h-full object-cover"
-                          style={card.reversed ? { transform: "rotate(180deg)" } : undefined}
-                        />
-                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 to-transparent" />
-                        <p className="relative text-white/90 text-[7px] sm:text-[8px] leading-tight px-1 font-display text-center mt-auto mb-1 drop-shadow">
-                          {card.card.name}
+          {/* ─── Card Selection Phase ─── */}
+          {phase === "select" && (
+            <>
+              <div className="tarot-scene" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                <div style={{
+                  position: "absolute", inset: 0,
+                  background: "radial-gradient(ellipse at 50% 30%, #1a1040 0%, #0a0a14 60%, #050510 100%)",
+                }} />
+              </div>
+              <div className="tarot-candidates-area">
+                <div className="tarot-selected-tray">
+                  {Array.from(selectedIndices).map((cardIdx, i) => {
+                    const c = deckCards[cardIdx];
+                    return (
+                      <div key={cardIdx} className="tarot-selected-mini-wrap">
+                        <div className="tarot-selected-mini">
+                          {c.card.image ? (
+                            <img src={c.card.image} alt={c.card.name} />
+                          ) : (
+                            <div style={{ width: "100%", height: "100%", background: "#1a1040", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.2rem" }}>
+                              {c.card.emoji}
+                            </div>
+                          )}
+                        </div>
+                        <div className="tarot-selected-mini-badge">{i + 1}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="tarot-candidates-info">
+                  {selectedIndices.size < spreadCount
+                    ? `Choose ${spreadCount - selectedIndices.size} more card${spreadCount - selectedIndices.size > 1 ? "s" : ""}`
+                    : (
+                      <button className="tarot-confirm-btn" onClick={confirmSelection}>
+                        ✦ Reveal Your Fate ✦
+                      </button>
+                    )
+                  }
+                </div>
+                <ArcDeck
+                  cards={deckCards}
+                  selected={selectedIndices}
+                  onSelect={selectCard}
+                  maxSelect={spreadCount}
+                />
+              </div>
+            </>
+          )}
+
+          {/* ─── Reveal Phase ─── */}
+          {phase === "reveal" && (
+            <div className="tarot-scene" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "radial-gradient(ellipse at 50% 30%, #1a1040 0%, #0a0a14 60%, #050510 100%)",
+              }} />
+              <div style={{ position: "relative", zIndex: 1, textAlign: "center", padding: "2rem 1rem" }}>
+                <p style={{ color: "rgba(168,160,192,0.6)", fontSize: "0.75rem", letterSpacing: "0.1em", marginBottom: "2rem" }}>
+                  TAP EACH CARD TO REVEAL
+                </p>
+                <div style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
+                  {drawnCards.map((card, i) => {
+                    const labels = spreadCount === 1 ? ["Focus"] : POSITIONS_3;
+                    return (
+                      <div key={i} style={{ textAlign: "center" }}>
+                        <p style={{ color: "rgba(212,168,83,0.5)", fontSize: "0.65rem", letterSpacing: "0.15em", marginBottom: "0.5rem", fontFamily: "'Playfair Display', Georgia, serif" }}>
+                          {labels[i]}
                         </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-white/70 text-[8px] sm:text-[9px] leading-tight px-1 font-display text-center">
-                          {card.card.name}
-                        </p>
-                        {card.reversed && <p className="text-[#d4a853]/40 text-[7px] mt-1">Reversed</p>}
-                      </>
-                    )}
+                        <div className={`tarot-card-slot spotlight ${flippedCards[i] ? "flipped" : ""}`}
+                          onClick={() => { if (!flippedCards[i] && i === flipIdx) flipNext(); }}
+                          style={{ cursor: !flippedCards[i] && i === flipIdx ? "pointer" : "default" }}
+                        >
+                          <div className="tarot-card-inner">
+                            <CardBack />
+                            <div className={`tarot-card-front ${card.reversed ? "reversed" : ""}`}>
+                              {card.card.image ? (
+                                <img className="tarot-card-front-img" src={card.card.image} alt={card.card.name} draggable={false} />
+                              ) : (
+                                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(145deg, #1a1535, #0d0b20)", fontSize: "3rem" }}>
+                                  {card.card.emoji}
+                                </div>
+                              )}
+                              <div className="tarot-card-overlay">
+                                <div className="tarot-card-name-main">{card.card.name}</div>
+                                <div className="tarot-card-direction">{card.reversed ? "Reversed ↺" : "Upright ↑"}</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="tarot-card-burst" />
+                          <div className="tarot-card-rays" />
+                          <div className="tarot-card-sparkles">
+                            {Array.from({ length: 8 }).map((_, j) => <span key={j} className="tarot-sparkle" />)}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {flippedCards.every(Boolean) && (
+                  <div style={{ marginTop: "2rem" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem 1.5rem", background: "rgba(16,10,40,0.85)", border: "1px solid rgba(212,168,83,0.15)", borderRadius: "1rem" }}>
+                      <div className="tarot-loading-spinner" style={{ width: 16, height: 16, borderWidth: 2 }} />
+                      <span style={{ color: "rgba(212,168,83,0.7)", fontSize: "0.75rem", letterSpacing: "0.1em", fontFamily: "'Playfair Display', Georgia, serif" }}>
+                        The Norns are weaving your fate...
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ─── Result Phase ─── */}
+          {phase === "result" && readingData && (
+            <div className="tarot-reveal-area">
+              {/* Header */}
+              <div style={{ textAlign: "center", padding: "1.5rem 0 0.5rem" }}>
+                <p style={{ color: "rgba(212,168,83,0.7)", fontSize: "0.65rem", letterSpacing: "0.15em" }}>✦ YOUR READING ✦</p>
+                <h2 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.5rem", fontWeight: 700, color: "#f0d48a", marginTop: "0.5rem" }}>
+                  {TOPICS.find(t => t.key === topic)?.label || "Your Reading"}
+                </h2>
+              </div>
+
+              {/* Card summary */}
+              <div className="tarot-reveal-cards">
+                {drawnCards.map((card, i) => {
+                  const labels = spreadCount === 1 ? ["Focus"] : POSITIONS_3;
+                  return (
+                    <div key={i} style={{ textAlign: "center" }}>
+                      <p style={{ color: "rgba(212,168,83,0.4)", fontSize: "0.55rem", letterSpacing: "0.15em", marginBottom: "0.25rem", fontFamily: "'Playfair Display', Georgia, serif" }}>
+                        {labels[i]}
+                      </p>
+                      <div className="tarot-card-slot spotlight flipped">
+                        <div className="tarot-card-inner">
+                          <CardBack />
+                          <div className={`tarot-card-front ${card.reversed ? "reversed" : ""}`}>
+                            {card.card.image ? (
+                              <img className="tarot-card-front-img" src={card.card.image} alt={card.card.name} draggable={false} />
+                            ) : (
+                              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(145deg, #1a1535, #0d0b20)", fontSize: "3rem" }}>
+                                {card.card.emoji}
+                              </div>
+                            )}
+                            <div className="tarot-card-overlay">
+                              <div className="tarot-card-name-main">{card.card.name}</div>
+                              <div className="tarot-card-direction">{card.reversed ? "Reversed ↺" : "Upright ↑"}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Free reading */}
+              <div className="tarot-result-section">
+                <div className="tarot-result-card">
+                  <div className="tarot-result-title">The Norns Speak</div>
+                  <div className="tarot-result-text">
+                    {readingData.free.split("\n\n").map((p, i) => <p key={i}>{p}</p>)}
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* Free reading */}
-            <div className="glass-card p-6 sm:p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[rgba(212,168,83,0.15)]" />
-                <span className="text-[#d4a853]/50 text-[10px] tracking-widest uppercase font-display">Your Reading</span>
-                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[rgba(212,168,83,0.15)]" />
-              </div>
-              <div className="text-[#9ca3af] leading-relaxed text-sm space-y-4">
-                {readingData.free.split("\n\n").map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-            </div>
+                {/* Premium locked */}
+                <div className="tarot-result-card tarot-premium-lock">
+                  <div className="tarot-result-title">Deep Insight</div>
+                  <div className="tarot-premium-blur tarot-result-text">
+                    {(readingData.premium || "The deeper threads of your reading reveal hidden patterns and connections...").split("\n\n").slice(0, 3).map((p, i) => <p key={i}>{p}</p>)}
+                  </div>
+                  <div className="tarot-premium-overlay">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ marginBottom: "0.5rem" }}>
+                      <rect x="4" y="9" width="12" height="9" rx="2" stroke="rgba(212,168,83,0.5)" strokeWidth="1.2" />
+                      <path d="M6 9V6a4 4 0 118 0v3" stroke="rgba(212,168,83,0.5)" strokeWidth="1.2" />
+                    </svg>
+                    <p style={{ color: "rgba(168,160,192,0.5)", fontSize: "0.75rem", letterSpacing: "0.1em", marginBottom: "1rem" }}>
+                      The full revelation awaits
+                    </p>
+                    <button className="tarot-confirm-btn" style={{ fontSize: "0.85rem", padding: "0.65rem 1.75rem" }}>
+                      🔓 Unlock Full Reading — $2.99
+                    </button>
+                    <p style={{ color: "rgba(168,160,192,0.3)", fontSize: "0.65rem", marginTop: "0.5rem" }}>
+                      ✦ One-time purchase · Instant access
+                    </p>
+                  </div>
+                </div>
 
-            {/* Premium locked */}
-            <div className="relative glass-card p-6 sm:p-8 overflow-hidden">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[rgba(212,168,83,0.15)]" />
-                <span className="text-[#d4a853]/50 text-[10px] tracking-widest uppercase font-display">Deep Insight</span>
-                <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[rgba(212,168,83,0.15)]" />
-              </div>
-
-              <div className="text-[#9ca3af] leading-relaxed text-sm space-y-4" style={{maskImage:'linear-gradient(to bottom, black 33%, transparent 90%)',WebkitMaskImage:'linear-gradient(to bottom, black 33%, transparent 90%)'}}>
-                {(readingData.premium || "The deeper threads of your reading reveal hidden patterns and connections that transform understanding into actionable wisdom. Each card speaks not only of its position but of its relationship to every other card in the spread.").split("\n\n").slice(0, 3).map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
-
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a14] via-[#0a0a14]/60 to-transparent pointer-events-none" />
-
-              <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col items-center">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-[#d4a853]/50 mb-2">
-                  <rect x="4" y="9" width="12" height="9" rx="2" stroke="currentColor" strokeWidth="1.2" />
-                  <path d="M6 9V6a4 4 0 118 0v3" stroke="currentColor" strokeWidth="1.2" />
-                </svg>
-                <p className="text-[#9ca3af]/40 text-xs tracking-wider">The full revelation awaits</p>
+                {/* Actions */}
+                <div className="tarot-action-row">
+                  <button className="tarot-action-btn" onClick={handleShare}>Share ↗</button>
+                  <button className="tarot-action-btn" onClick={restart}>New Reading</button>
+                </div>
               </div>
             </div>
+          )}
 
-            <button className="btn-gold w-full py-4 text-base font-semibold tracking-wider shadow-[0_0_30px_rgba(212,168,83,0.25)]">
-              🔓 Unlock Full Reading — $2.99
-            </button>
-            <p className="text-center text-[#9ca3af]/40 text-xs tracking-wider">✦ One-time purchase · Instant access</p>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleShare}
-                className="flex-1 py-3 rounded-full border border-[rgba(212,168,83,0.1)] text-[#9ca3af]/60 hover:text-[#d4a853] hover:border-[rgba(212,168,83,0.25)] text-xs tracking-wider transition-all"
-              >
-                Share ↗
-              </button>
-              <button
-                onClick={() => { setPhase("ask"); setQuestion(""); setCards([]); setReadingData(null); }}
-                className="flex-1 py-3 rounded-full border border-[rgba(212,168,83,0.1)] text-[#9ca3af]/60 hover:text-[#d4a853] hover:border-[rgba(212,168,83,0.25)] text-xs tracking-wider transition-all"
-              >
-                New Reading
-              </button>
+          {/* Loading overlay */}
+          {loading && (
+            <div className="tarot-loading-overlay">
+              <div className="tarot-loading-spinner" />
+              <p>The Norns are weaving your fate...</p>
             </div>
-          </div>
-        )}
-      </main>
+          )}
+        </div>
+      )}
     </>
   );
 }
